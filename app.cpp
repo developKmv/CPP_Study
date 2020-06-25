@@ -2,19 +2,40 @@
 
 int main()
 {
-    cout << "in numbers(= & -): ";
+    cout << "(=,-,*,/)\n >> ";
     int lval = 0;
-    int rval = 0;
-    int res;
+    int rval;
     char op;
+    cin >> lval;
 
-    cin>>lval>>op>>rval;
+    if (!cin)
+        error("Нет первого операнда ");
 
-    if(op=='+')
-        res = lval+rval;
-    else if (op=='-')
-        res = lval-rval;
+    while (cin >> op)
+    {
+        cin >> rval;
+        if (!cin)error("Нет второго оперранда");
 
-    cout << "resul: " << res <<'\n';
-    return 0;
+        switch (op)
+        {
+            case '+':
+                lval += rval;
+                cout << "!\n";
+                break;
+            case '-':
+                lval -= rval;
+                break;
+            case '*':
+                lval *= rval;
+                break;
+            case '/':
+                lval /= rval;
+                break;
+            default:
+                cout << "result: " << lval << '\n';
+                return 0;
+        }
+    }
+
+    error("no operations!");
 }
