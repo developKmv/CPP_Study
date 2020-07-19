@@ -6,7 +6,9 @@ const char quit = 'q';
 const char print = ';';
 const string prompt = "> ";
 const string result = "= ";
-
+const char name = 'a';
+const char let = 'L';
+const string declkey = "let";
 
 class Variable
 {
@@ -25,6 +27,7 @@ class Token
     public:
         char kind;
         double value;
+        string name;
 
         Token(char ch)
             :kind(ch),value(0)
@@ -35,7 +38,12 @@ class Token
             :kind(ch),value(val)
             {
 
-            }          
+            }       
+        Token(char ch,string n)
+            :kind(ch),name(n)
+            {
+
+            }
 };
 
 class Token_stream
@@ -101,6 +109,7 @@ Token Token_stream::get()
         case '*': 
         case '/':
         case '%':
+        case '=':
             return Token(ch);
         
         case '1': case '2': case '3': case '4': 
@@ -113,12 +122,23 @@ Token Token_stream::get()
               return Token(number,val); 
             }
         default:
+            if(isalpha(ch))
+            {
+                cin.putback(ch);
+                string s;
+                cin>>s;
+                if(s==declkey)return Token(let);
+
+                return Token(name,s);
+            }
             error("unxepcted leksem");
     }
 }
 
 double primary();
 double term();
+double declaration();
+double statement();
 
 double expression()
 {
@@ -228,7 +248,7 @@ void calculate()
                 if (t.kind == quit) return;
                 
                 ts.putback(t);
-                cout << result << expression() << endl;
+                cout << result << statement() << endl;
             }
             catch(exception& e){
                 cerr<< e.what() << endl;
@@ -257,6 +277,52 @@ void set_value(string s,double d)
         error("set: неопределенная переменая", s);
     }
 }
+
+bool is_declared(string var)
+{
+    for(int i=0;i<var_table.size();++i)
+    {
+        if(var_table[i].name ==var)return true;
+    }
+    return false;
+}
+
+double define_name(string var,double val)
+{
+    if(is_declared(var)) error(var, "seclared twice");
+    var_table.push_back(Variable(var,val));
+    return val;
+}
+
+double declaration()
+{
+    Token t =ts.get();
+    if(t.kind != name) error("в обьявлении ожидается переменная name");
+
+    string var_name = t.name;
+
+    Token t2 = ts.get();
+    if(t2.kind != '=') error("в обьявлении пропущен знак =", var_name);
+
+    double d = expression();
+    define_name(var_name,d);
+    return d;
+}
+
+double statement()
+{
+    Token t = ts.get();
+    switch(t.kind)
+    {
+        case let:
+            return declaration();
+        default:
+            ts.putback(t);
+            return expression();
+    }
+}
+
+
 
 int main()
 {
